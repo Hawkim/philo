@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philo.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nal-haki <nal-haki@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nal-haki <nal-haki@student.42beirut.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/20 14:09:58 by nal-haki          #+#    #+#             */
-/*   Updated: 2025/01/07 10:34:36 by nal-haki         ###   ########.fr       */
+/*   Updated: 2025/01/23 09:05:39 by nal-haki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,9 @@
 
 /*
  * av[1] = number_of_philosophers (min 1 / max 200)
- * av[2] = time_to_die (min 60ms)
- * av[3] = time_to_eat (min 60ms)
- * av[4] = time_to_sleep (min 60ms)
+ * av[2] = die_time (min 60ms)
+ * av[3] = eat_time (min 60ms)
+ * av[4] = sleep_time (min 60ms)
  * av[5] = number_of_times_each_philosopher_must_eat [optional]
  */
 
@@ -27,7 +27,7 @@ int	eat(t_philo *philo)
 	else
 		pthread_mutex_lock(&(philo->data->forks_lock[philo->right_fork]));
 	print_status(philo, "has taken a fork 🍴", 0);
-	if (philo->data->num_of_philos == 1)
+	if (philo->data->philo_number == 1)
 		return (pthread_mutex_unlock(
 				&(philo->data->forks_lock[philo->left_fork])), 1);
 	if (philo->id % 2 == 1)
@@ -36,15 +36,15 @@ int	eat(t_philo *philo)
 		pthread_mutex_lock(&(philo->data->forks_lock[philo->left_fork]));
 	print_status(philo, "has taken a fork 🍴", 0);
 	pthread_mutex_lock(&philo->data->last_meal_lock);
-	philo->time_of_last_meal = timestamp(philo->data);
+	philo->last_meal_time = timestamp(philo->data);
 	pthread_mutex_unlock(&philo->data->last_meal_lock);
 	print_status(philo, "is eating 🍝", 0);
-	ft_usleep(philo->data->time_to_eat);
-	meals_eaten_util(philo);
+	ft_usleep(philo->data->eat_time);
+	meals_count_util(philo);
 	pthread_mutex_unlock(&(philo->data->forks_lock[philo->right_fork]));
 	pthread_mutex_unlock(&(philo->data->forks_lock[philo->left_fork]));
 	print_status(philo, "is sleeping 💤", 0);
-	ft_usleep(philo->data->time_to_sleep);
+	ft_usleep(philo->data->sleep_time);
 	print_status(philo, "is thinking 💡", 0);
 	return (0);
 }
@@ -58,10 +58,10 @@ void	*monitor(void *arg)
 	{
 		if (is_dead(data))
 			return (NULL);
-		if (data->meals_required_flag && meals_check(data))
+		if (data->is_meal_required && meals_check(data))
 		{
 			pthread_mutex_lock(&data->write_lock);
-			data->finished = 1;
+			data->has_finished = 1;
 			return (pthread_mutex_unlock(&data->write_lock), NULL);
 		}
 		usleep(100);
@@ -75,22 +75,22 @@ void	*routine(void *arg)
 
 	philo = (t_philo *)arg;
 	if (philo->id % 2 == 0)
-		ft_usleep(philo->data->time_to_eat);
+		ft_usleep(philo->data->eat_time);
 	while (1)
 	{
 		if (eat(philo))
 		{
 			pthread_mutex_lock(&philo->data->write_lock);
-			philo->data->finished = 1;
+			philo->data->has_finished = 1;
 			return (pthread_mutex_unlock(&philo->data->write_lock), NULL);
 		}
 		pthread_mutex_lock(&philo->data->write_lock);
-		if (philo->data->finished == 1)
+		if (philo->data->has_finished == 1)
 			return (pthread_mutex_unlock(&philo->data->write_lock), NULL);
 		pthread_mutex_unlock(&philo->data->write_lock);
-		if (philo->data->num_of_philos % 2 == 1)
-			ft_usleep((philo->data->time_to_eat * 2)
-				- (philo->data->time_to_sleep));
+		if (philo->data->philo_number % 2 == 1)
+			ft_usleep((philo->data->eat_time * 2)
+				- (philo->data->sleep_time));
 	}
 	return (NULL);
 }
@@ -101,10 +101,10 @@ void	run_philos(t_data *data)
 
 	pthread_create(&data->monitor, NULL, monitor, (void *)data);
 	i = -1;
-	while (++i < data->num_of_philos)
+	while (++i < data->philo_number)
 	{
 		pthread_mutex_lock(&data->last_meal_lock);
-		data->philos[i].time_of_last_meal = timestamp(data);
+		data->philos[i].last_meal_time = timestamp(data);
 		pthread_create(&data->philos[i].thread, NULL, routine,
 			(void *)&data->philos[i]);
 		pthread_mutex_unlock(&data->last_meal_lock);

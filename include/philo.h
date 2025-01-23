@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philo.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nal-haki <nal-haki@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nal-haki <nal-haki@student.42beirut.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/20 13:42:31 by nal-haki          #+#    #+#             */
-/*   Updated: 2024/12/20 13:42:34 by nal-haki         ###   ########.fr       */
+/*   Updated: 2025/01/23 09:05:39 by nal-haki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,36 +23,36 @@
 # include <time.h>
 # include <unistd.h>
 
-# define MAX_PHILOSOPHERS 200
+# define MAX_PHILOS 200
 
 typedef struct s_philo
 {
 	int				id;
-	int				meals_eaten;
-	int				has_eaten_enough;
+	int				meals_count;
+	int				meals_satisfied;
 	pthread_t		thread;
 	int				left_fork;
 	int				right_fork;
-	size_t			time_of_last_meal;
+	size_t			last_meal_time;
 	struct s_data	*data;
 }					t_philo;
 
 typedef struct s_data
 {
-	int				num_of_philos;
-	size_t			time_to_die;
-	size_t			time_to_eat;
-	size_t			time_to_sleep;
-	int				meals_required_flag;
-	int				num_required_meals;
+	struct s_philo	philos[MAX_PHILOS];
+	int				philo_number;
+	size_t			die_time;
+	size_t			eat_time;
+	size_t			sleep_time;
+	int				is_meal_required;
+	int				required_meal_number;
 	size_t			start_time;
 	pthread_t		monitor;
 	pthread_mutex_t	write_lock;
-	pthread_mutex_t	forks_lock[MAX_PHILOSOPHERS];
+	pthread_mutex_t	forks_lock[MAX_PHILOS];
 	pthread_mutex_t	last_meal_lock;
 	pthread_mutex_t	eaten_enough_lock;
-	struct s_philo	philos[MAX_PHILOSOPHERS];
-	int				finished;
+	int				has_finished;
 }					t_data;
 
 // * parse_args.c *
@@ -72,6 +72,6 @@ int					threads_join(t_data *data);
 int					meals_check(t_data *data);
 int					is_dead(t_data *data);
 void				destroy_locks(t_data *data);
-void				meals_eaten_util(t_philo *philo);
+void				meals_count_util(t_philo *philo);
 
 #endif

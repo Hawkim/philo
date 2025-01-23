@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nal-haki <nal-haki@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nal-haki <nal-haki@student.42beirut.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/28 18:14:03 by nal-haki          #+#    #+#             */
-/*   Updated: 2024/12/20 13:43:40 by nal-haki         ###   ########.fr       */
+/*   Updated: 2025/01/23 09:05:39 by nal-haki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ int	print_status(t_philo *philo, char *str, int force_print)
 {
 	if (pthread_mutex_lock(&(philo->data->write_lock)))
 		return (1);
-	if (!philo->data->finished || force_print)
+	if (!philo->data->has_finished || force_print)
 		printf("%zu\t%d %s\n", timestamp(philo->data), philo->id, str);
 	if (pthread_mutex_unlock(&(philo->data->write_lock)))
 		return (1);
